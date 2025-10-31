@@ -22,4 +22,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   }
+  ,
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules", "frontend", "dist"]
 }

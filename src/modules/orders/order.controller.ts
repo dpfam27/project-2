@@ -17,6 +17,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 import { Order } from './entities/order.entity';
+import { CheckoutDto } from './dto/checkout.dto';
+import { PaymentInitDto } from './dto/payment-init.dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -33,6 +35,21 @@ export class OrderController {
       message: 'Order created successfully',
       data: plainToInstance(OrderResponseDto, order, { excludeExtraneousValues: true }),
     };
+  }
+
+  @Post('checkout')
+  @Auth('user')
+  @ApiOkResponse({ type: ApiResponseDto })
+  async checkout(@Body() dto: CheckoutDto) {
+    const res = await this.orderService.checkout(dto);
+    return { statusCode: 200, message: 'Checkout created', data: res };
+  }
+
+  @Post('payment/init')
+  @Auth('user')
+  async initPayment(@Body() dto: PaymentInitDto) {
+    // For demo we just return a mock payment url
+    return { statusCode: 200, message: 'Payment initiated', data: { payment_url: 'https://mockpay.example/pay?paymentId=' + dto.order_id } };
   }
 
   @Get()
@@ -79,6 +96,21 @@ export class OrderController {
     return {
       statusCode: 200,
       message: 'Order updated successfully',
+      data: plainToInstance(OrderResponseDto, updated, { excludeExtraneousValues: true }),
+    };
+  }
+
+  @Patch(':id/status')
+  @Auth('user')
+  @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
+  async updateStatus(
+    @Param('id') id: number,
+    @Body() body: { status: 'Pending' | 'Paid' | 'Shipped' | 'Canceled' }
+  ): Promise<ApiResponseDto<OrderResponseDto>> {
+    const updated = await this.orderService.updateStatus(id, body.status);
+    return {
+      statusCode: 200,
+      message: 'Order status updated',
       data: plainToInstance(OrderResponseDto, updated, { excludeExtraneousValues: true }),
     };
   }

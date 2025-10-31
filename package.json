@@ -18,6 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
+    ,
+    "seed:admin": "ts-node -r tsconfig-paths/register src/seeds/seed-admin.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -33,6 +35,7 @@
     "class-validator": "^0.14.2",
     "mariadb": "^3.4.5",
     "mysql2": "^3.14.3",
+  "sqlite3": "^5.1.6",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",

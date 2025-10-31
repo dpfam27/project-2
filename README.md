@@ -96,3 +96,44 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+---
+
+## Midterm: Catalog & Inventory + Order & Payment
+
+Quick setup for local dev:
+
+1. Copy environment file:
+
+```bash
+cp .env.example .env
+# edit .env to set DB_PASS, JWT_SECRET, etc.
+```
+
+2. Start MariaDB (Docker):
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+3. Install deps and run dev:
+
+```bash
+npm install
+npm run start:dev
+```
+
+4. Create admin user (dev seed):
+
+```bash
+ADMIN_PASSWORD=admin123 npm run seed:admin
+```
+
+5. Swagger UI: http://localhost:3000/api
+
+Tail Admin integration notes:
+- You said you downloaded `free-nextjs-admin-dashboard-main`. Put that Next.js project in a sibling folder or inside `frontend/`.
+- Set `NEXT_PUBLIC_API_URL=http://localhost:3000` in the Next app `.env.local` and implement login to `/auth/login` then attach `Authorization: Bearer <token>`.
+
+If you want, I can scaffold the frontend inside this repo and wire basic pages (login, product list, order list).
+

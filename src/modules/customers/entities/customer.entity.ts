@@ -19,7 +19,7 @@ export class Customer {
   phone?: string;
   
   @Expose()
-  @Column({ length: 255 })
+  @Column({ length: 255, nullable: true })
   address?: string;
 
   @CreateDateColumn({ name: 'created_at' })
