@@ -1,0 +1,220 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import PageBreadCrumb from "@/components/common/PageBreadCrumb";
+
+interface Order {
+  id: number;
+  customerId: number;
+  totalAmount: string;
+  status: string;
+  paymentMethod: string;
+  createdAt: string;
+  customer?: {
+    name: string;
+    email: string;
+  };
+}
+
+const OrdersPage = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch("http://localhost:3000/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // API returns { statusCode, message, data }
+        const orders = result.data || result;
+        setOrders(Array.isArray(orders) ? orders : []);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: number, status: string) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:3000/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.ok) {
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message || 'Failed to update status'}`);
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Failed to update order status");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  return (
+    <div>
+      <PageBreadCrumb pageTitle="Orders Management" />
+
+      <div className="mt-5 w-full max-w-full rounded-xl border border-stroke bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
+        <div className="border-b border-stroke px-7 py-5 dark:border-gray-800">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            All Orders
+          </h3>
+        </div>
+
+        <div className="p-7">
+          {loading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent"></div>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="py-10 text-center text-gray-500 dark:text-gray-400">
+              No orders found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50 text-left dark:bg-gray-800">
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Order ID
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Customer
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Total Amount
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Payment Method
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="border-b border-stroke dark:border-gray-800"
+                    >
+                      <td className="px-4 py-4">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          #{order.id}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {order.customer?.name || "N/A"}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {order.customer?.email || ""}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          ${parseFloat(order.totalAmount).toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm capitalize text-gray-700 dark:text-gray-300">
+                          {order.paymentMethod}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex gap-2">
+                          {order.status === 'Pending' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Paid')}
+                              className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+                            >
+                              Mark Paid
+                            </button>
+                          )}
+                          {order.status === 'Paid' && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Shipped')}
+                              className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+                            >
+                              Ship
+                            </button>
+                          )}
+                          {(order.status === 'Pending' || order.status === 'Paid') && (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'Canceled')}
+                              className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrdersPage;
