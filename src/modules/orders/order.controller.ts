@@ -7,6 +7,8 @@ import {
   Delete,
   Query,
   Patch,
+  ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Auth } from '../../common/decorators/auth.decorator';
@@ -40,8 +42,10 @@ export class OrderController {
   @Post('checkout')
   @Auth('user')
   @ApiOkResponse({ type: ApiResponseDto })
-  async checkout(@Body() dto: CheckoutDto) {
-    const res = await this.orderService.checkout(dto);
+  async checkout(@Body() dto: CheckoutDto, @Request() req: any) {
+    // Get userId from JWT token
+    const userId = req.user.userId;
+    const res = await this.orderService.checkout({ ...dto, customer_id: userId });
     return { statusCode: 200, message: 'Checkout created', data: res };
   }
 
@@ -53,7 +57,7 @@ export class OrderController {
   }
 
   @Get()
-  @Auth('user')
+  @Auth('user', 'admin')
   @ApiOkResponse({ type: ApiResponseDto<Order[]> })
   async findAll(): Promise<ApiResponseDto<Order[]>> {
     const orders = await this.orderService.findAll();
@@ -65,7 +69,7 @@ export class OrderController {
   }
 
   @Get('search')
-  @Auth('user')
+  @Auth('user', 'admin')
   @ApiOkResponse({ type: ApiResponseDto<Order[]> })
   async search(@Query('keyword') keyword: string): Promise<ApiResponseDto<Order[]>> {
     const results = await this.orderService.search(keyword);
@@ -77,9 +81,9 @@ export class OrderController {
   }
 
   @Get(':id')
-  @Auth('user')
+  @Auth('user', 'admin')
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
-  async findOne(@Param('id') id: number): Promise<ApiResponseDto<OrderResponseDto>> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<ApiResponseDto<OrderResponseDto>> {
     const order = await this.orderService.findOne(id);
     return {
       statusCode: 200,
@@ -91,7 +95,7 @@ export class OrderController {
   @Patch(':id')
   @Auth('user')
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
-  async update(@Param('id') id: number, @Body() dto: UpdateOrderDto): Promise<ApiResponseDto<OrderResponseDto>> {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderDto): Promise<ApiResponseDto<OrderResponseDto>> {
     const updated = await this.orderService.update(id, dto);
     return {
       statusCode: 200,
@@ -101,10 +105,10 @@ export class OrderController {
   }
 
   @Patch(':id/status')
-  @Auth('user')
+  @Auth('admin')
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
   async updateStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: 'Pending' | 'Paid' | 'Shipped' | 'Canceled' }
   ): Promise<ApiResponseDto<OrderResponseDto>> {
     const updated = await this.orderService.updateStatus(id, body.status);
@@ -118,7 +122,7 @@ export class OrderController {
   @Delete(':id')
   @Auth('admin')
   @ApiOkResponse({ type: ApiResponseDto<null> })
-  async remove(@Param('id') id: number): Promise<ApiResponseDto<null>> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<ApiResponseDto<null>> {
     await this.orderService.remove(id);
     return { statusCode: 200, message: 'Order deleted', data: null };
   }

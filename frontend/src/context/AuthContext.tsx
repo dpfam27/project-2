@@ -6,9 +6,11 @@ import { authAPI, User } from '@/lib/api';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isCustomer: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authAPI.login({ username, password });
     const response = await authAPI.whoami();
     setUser(response.user);
+    return response.user; // Return user so caller can check role
   };
 
   const logout = () => {
@@ -53,6 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin',
+        isCustomer: user?.role === 'user',
       }}
     >
       {children}

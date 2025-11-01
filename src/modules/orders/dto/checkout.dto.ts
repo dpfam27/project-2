@@ -7,11 +7,15 @@ class CartItemDto {
   @IsInt()
   @Min(1)
   quantity: number;
+
+  @IsNumber()
+  price: number;
 }
 
 export class CheckoutDto {
+  @IsOptional()
   @IsInt()
-  customer_id: number;
+  customer_id?: number;
 
   @IsArray()
   items: CartItemDto[];
@@ -20,7 +24,8 @@ export class CheckoutDto {
   @IsString()
   coupon_code?: string;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  shipping_fee: number;
+  shipping_fee?: number;
 }

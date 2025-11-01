@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { Auth } from '../../common/decorators/auth.decorator';
 
 class ValidateCouponDto {
   code: string;
@@ -12,6 +13,7 @@ export class CatalogController {
   constructor(private readonly service: CatalogService) {}
 
   @Post('products')
+  @Auth('admin')
   createProduct(@Body() dto: CreateProductDto) {
     return this.service.createProduct(dto);
   }
@@ -22,18 +24,20 @@ export class CatalogController {
   }
 
   @Get('products/:id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(parseInt(id, 10));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.service.findOne(id);
   }
 
   @Put('products/:id')
-  updateProduct(@Param('id') id: string, @Body() dto: Partial<CreateProductDto>) {
-    return this.service.updateProduct(parseInt(id, 10), dto);
+  @Auth('admin')
+  updateProduct(@Param('id', ParseIntPipe) id: number, @Body() dto: Partial<CreateProductDto>) {
+    return this.service.updateProduct(id, dto);
   }
 
   @Delete('products/:id')
-  deleteProduct(@Param('id') id: string) {
-    return this.service.deleteProduct(parseInt(id, 10));
+  @Auth('admin')
+  deleteProduct(@Param('id', ParseIntPipe) id: number) {
+    return this.service.deleteProduct(id);
   }
 
   @Post('coupons/validate')

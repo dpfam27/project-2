@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,8 +18,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(username, password);
-      router.push('/'); // Redirect to dashboard
+      const user = await login(username, password);
+      
+      // Redirect based on role
+      if (user.role === 'admin') {
+        router.push('/admin'); // Admin goes to dashboard
+      } else {
+        router.push('/products'); // Customer goes to shop
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {

@@ -31,7 +31,7 @@ export class CustomerController {
     }
 
     @Get()
-    @Auth('user')
+    @Auth('admin')
     @ApiOkResponse({ type: ApiResponseDto<Customer[]> })
     async findAll(@Req() req): Promise<ApiResponseDto<Customer[]>> {
         console.log('>>> Current user:', req.user); //  check

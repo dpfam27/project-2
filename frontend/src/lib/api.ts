@@ -47,6 +47,22 @@ export interface CartItem {
   id: number;
   cart_id: number;
   variant_id: number;
+  variant?: {
+    id: number;
+    sku: string;
+    attributes?: {
+      size?: string;
+      color?: string;
+    };
+    price: string | number;
+    stock: number;
+    product?: {
+      id: number;
+      name: string;
+      description?: string;
+      published: boolean;
+    };
+  };
   quantity: number;
   price: number;
   created_at: string;
@@ -191,6 +207,17 @@ export const productsAPI = {
     apiFetch<Product>('/catalog/products', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  update: (id: number, data: Partial<Omit<Product, 'id' | 'variants'>>) =>
+    apiFetch<Product>(`/catalog/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: number) =>
+    apiFetch<{ statusCode: number; message: string }>(`/catalog/products/${id}`, {
+      method: 'DELETE',
     }),
 };
 

@@ -3,9 +3,75 @@ import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+// Cart Icon Component
+const CartIcon: React.FC = () => {
+  const { isCustomer } = useAuth();
+  const router = useRouter();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    if (isCustomer) {
+      fetchCartCount();
+    }
+  }, [isCustomer]);
+
+  const fetchCartCount = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch("http://localhost:3000/cart", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const cart = data.data || data;
+        const count = cart.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+        setCartCount(count);
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+    }
+  };
+
+  // Don't show cart icon for admin
+  if (!isCustomer) return null;
+
+  return (
+    <button
+      onClick={() => router.push('/cart')}
+      className="relative flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+      title="Shopping Cart"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+        />
+      </svg>
+      {cartCount > 0 && (
+        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-medium text-white">
+          {cartCount > 99 ? '99+' : cartCount}
+        </span>
+      )}
+    </button>
+  );
+};
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -168,6 +234,10 @@ const AppHeader: React.FC = () => {
            <NotificationDropdown /> 
             {/* <!-- Notification Menu Area --> */}
           </div>
+          
+          {/* <!-- Cart Icon --> */}
+          <CartIcon />
+          
           {/* <!-- User Area --> */}
           <UserDropdown /> 
     

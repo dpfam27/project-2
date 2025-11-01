@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { CartItem } from './cart-item.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+
+// Lazy import to avoid circular dependency
+const getCartItem = () => require('./cart-item.entity').CartItem;
 
 @Entity('carts')
 export class Cart {
@@ -11,10 +13,11 @@ export class Cart {
   user_id: number;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToMany(() => CartItem, (item) => item.cart, { cascade: true })
-  items: CartItem[];
+  @OneToMany(() => getCartItem(), (item: any) => item.cart, { cascade: true, eager: true })
+  items: any[];
 
   @CreateDateColumn()
   created_at: Date;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
@@ -26,31 +27,41 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
+// Admin menu items
+const adminNavItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    path: "/",
+    path: "/admin",
   },
   {
     icon: <BoxCubeIcon />,
     name: "Products",
-    path: "/products",
+    path: "/admin/products",
   },
   {
     icon: <UserCircleIcon />,
     name: "Customers",
-    path: "/customers",
+    path: "/admin/customers",
   },
   {
     icon: <ListIcon />,
-    name: "Orders",
-    path: "/orders",
+    name: "All Orders",
+    path: "/admin/orders",
   },
+];
+
+// Customer menu items - Simple menu: Shop and My Orders only
+const customerNavItems: NavItem[] = [
   {
     icon: <BoxCubeIcon />,
-    name: "Checkout",
-    path: "/checkout",
+    name: "Shop",
+    path: "/products",
+  },
+  {
+    icon: <ListIcon />,
+    name: "My Orders",
+    path: "/orders",
   },
 ];
 
@@ -58,7 +69,11 @@ const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isAdmin } = useAuth();
   const pathname = usePathname();
+
+  // Choose menu items based on role
+  const navItems = isAdmin ? adminNavItems : customerNavItems;
 
   const renderMenuItems = (
     navItems: NavItem[],

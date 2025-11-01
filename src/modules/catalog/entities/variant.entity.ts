@@ -13,5 +13,20 @@ export class Variant {
   sku?: string;
 
   @Column({ type: 'json', nullable: true })
-  attributes?: Record<string, any>; // e.g., { flavor: 'vanilla', size: '1kg' }
+  attributes?: Record<string, any>; // e.g., { flavor: 'vanilla', size: '1kg', color: 'red' }
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price?: number;
+
+  @Column({ type: 'int', default: 0 })
+  stock: number;
+
+  // Convenience accessors for common attributes
+  get size(): string | undefined {
+    return this.attributes?.size;
+  }
+
+  get color(): string | undefined {
+    return this.attributes?.color;
+  }
 }
