@@ -1,0 +1,12 @@
+Mã UC,Nhóm,Use Case,Actor,Module,Priority,Status,Mô tả
+UC-01,Auth,Đăng ký tài khoản,User,Auth,High,Done,User tạo tài khoản mới với username/password
+UC-02,Auth,Đăng nhập lấy JWT,User,Auth,High,Done,User đăng nhập và nhận JWT token
+UC-03,Product,Khách xem danh sách whey,User,Catalog,High,Done,Hiển thị danh sách sản phẩm với filter và search
+UC-04,Product,Khách xem chi tiết whey,User,Catalog,High,Done,Xem chi tiết sản phẩm với variants (size/flavor)
+UC-05,Product,Admin tạo sản phẩm,Admin,Catalog,High,Done,Admin tạo sản phẩm mới với thông tin đầy đủ
+UC-06,Product,Admin chỉnh sửa sản phẩm,Admin,Catalog,High,Done,Admin cập nhật thông tin sản phẩm
+UC-07,Product,Admin xóa sản phẩm,Admin,Catalog,Medium,Done,Admin xóa sản phẩm khỏi hệ thống
+UC-08,Order,User thêm whey vào giỏ hàng,User,Order,High,Done,Thêm variant vào cart với số lượng
+UC-09,Order,User tạo đơn hàng (checkout mở phòng),User,Order,High,Done,Checkout từ cart tạo order mới
+UC-10,Order,Admin xem & cập nhật trạng thái đơn,Admin,Order,High,Done,Quản lý đơn hàng và cập nhật status
+UC-11,Order,User xem lịch sử đơn hàng,User,Order,Medium,Done,Xem danh sách orders của mình

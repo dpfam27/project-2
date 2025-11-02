@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { productsAPI, Product } from '@/lib/api';
 import { formatVND } from '@/lib/currency';
 import { guestCart } from '@/lib/guestCart';
+import EditProductModal from '@/components/admin/EditProductModal';
 
 export default function ProductsPage() {
   const { isAuthenticated, isAdmin, loading: authLoading } = useAuth();
@@ -14,6 +15,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // No auth redirect - allow guests to browse products
 
@@ -34,16 +37,25 @@ export default function ProductsPage() {
     }
   };
 
-  const handleEdit = async (product: Product) => {
-    const newName = prompt('Enter new product name:', product.name);
-    if (!newName || newName === product.name) return;
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
 
+  const handleSaveEdit = async (id: number, data: { name: string; description: string; image_url?: string }) => {
     try {
-      await productsAPI.update(product.id, { name: newName });
+      await productsAPI.update(id, data);
       await loadProducts(); // Reload list
+      setIsModalOpen(false);
+      setEditingProduct(null);
     } catch (err: any) {
-      alert(`Error updating product: ${err.message}`);
+      throw new Error(err.message || 'Failed to update product');
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingProduct(null);
   };
 
   const handleDelete = async (product: Product) => {
@@ -130,15 +142,23 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {isAdmin ? 'Products Management' : 'Shop Products'}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          {isAdmin ? 'Manage your product catalog' : 'Browse our products'}
-        </p>
-      </div>
+    <>
+      <EditProductModal 
+        product={editingProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveEdit}
+      />
+
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {isAdmin ? 'Products Management' : 'Shop Products'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {isAdmin ? 'Manage your product catalog' : 'Browse our products'}
+          </p>
+        </div>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
@@ -258,6 +278,7 @@ export default function ProductsPage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

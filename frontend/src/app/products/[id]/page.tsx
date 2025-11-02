@@ -142,27 +142,37 @@ const ProductDetailPage = () => {
     <div>
       <PageBreadCrumb pageTitle={product.name} />
 
-      <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* Product Image */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-stroke dark:border-gray-800 p-8">
-          <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-stroke dark:border-gray-800 p-4 sm:p-6 lg:p-8 w-full">
+          <div className="relative w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
             <img 
-              src={`/images/products/product-${product.id}.jpg`}
+              src={`/images/products/product-${product.id}.png`}
               alt={product.name}
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-auto object-contain"
               onError={(e) => {
-                // Fallback to placeholder if image not found
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.innerHTML = `
-                  <span class="text-gray-400 text-lg">No Image Available</span>
-                `;
+                // Try .jpg format as fallback
+                const imgElement = e.currentTarget as HTMLImageElement;
+                if (imgElement.src.endsWith('.png')) {
+                  imgElement.src = `/images/products/product-${product.id}.jpg`;
+                } else {
+                  // Show placeholder if both formats fail
+                  imgElement.style.display = 'none';
+                  if (imgElement.parentElement) {
+                    imgElement.parentElement.innerHTML = `
+                      <div class="flex items-center justify-center min-h-[300px]">
+                        <span class="text-gray-400 text-lg">No Image Available</span>
+                      </div>
+                    `;
+                  }
+                }
               }}
             />
           </div>
         </div>
 
         {/* Product Details */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-stroke dark:border-gray-800 p-8 flex flex-col justify-between min-h-[700px]">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-stroke dark:border-gray-800 p-8 flex flex-col">
           <div className="flex-grow">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               {product.name}
