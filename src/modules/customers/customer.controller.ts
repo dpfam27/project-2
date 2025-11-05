@@ -17,7 +17,7 @@ export class CustomerController {
     
     
     @Get('search')
-    //@Auth('user')
+    //@Auth('customer')
     @ApiOkResponse({ type: ApiResponseDto<Customer[]> })
     async search(@Query('keyword') keyword: string): Promise<ApiResponseDto<Customer[]|null>> {
         //console.log('>>> Current user:', req.user); //  check
@@ -56,7 +56,7 @@ export class CustomerController {
     }
 
     @Post()
-    @Auth('user')
+    @Auth('customer')
     @ApiOkResponse({ type: ApiResponseDto<CustomerResponseDto> })
     async create(@Body() dto: CreateCustomerDto): Promise<ApiResponseDto<CustomerResponseDto>> {
         var customer = plainToInstance(Customer, dto, { excludeExtraneousValues: true });
@@ -70,7 +70,7 @@ export class CustomerController {
     }
 
     @Put(':id')
-    @Auth('user')
+    @Auth('customer')
     @ApiOkResponse({ type: ApiResponseDto<CustomerResponseDto> })
     async update(@Param('id') id: number, @Body() dto: CreateCustomerDto): Promise<ApiResponseDto<CustomerResponseDto>> {
         var customer = plainToInstance(Customer, dto, { excludeExtraneousValues: true });
@@ -83,7 +83,7 @@ export class CustomerController {
     }
     
     @Delete(':id')
-    @Auth('user')
+    @Auth('customer')
     @ApiOkResponse({ type: ApiResponseDto<void> })
     async remove(@Param('id') id: number): Promise<ApiResponseDto<null>> {
         await this.customerService.remove(id);

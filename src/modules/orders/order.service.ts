@@ -6,11 +6,9 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Customer } from '../customers/entities/customer.entity';
 import { OrderItem } from './entities/order_item.entity';
-import { Stock } from '../catalog/entities/stock.entity';
-import { Variant } from '../catalog/entities/variant.entity';
-import { Price } from '../catalog/entities/price.entity';
+import { Variant } from '../product/entities/variant.entity';
 import { Payment } from './entities/payment.entity';
-import { Coupon } from '../catalog/entities/coupon.entity';
+import { Coupon } from '../product/entities/coupon.entity';
 import { CheckoutDto } from './dto/checkout.dto';
 
 @Injectable()
@@ -22,12 +20,8 @@ export class OrderService {
     private readonly customerRepo: Repository<Customer>,
     @InjectRepository(OrderItem)
     private readonly itemRepo: Repository<OrderItem>,
-    @InjectRepository(Stock)
-    private readonly stockRepo: Repository<Stock>,
     @InjectRepository(Variant)
     private readonly variantRepo: Repository<Variant>,
-    @InjectRepository(Price)
-    private readonly priceRepo: Repository<Price>,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
     @InjectRepository(Coupon)
@@ -67,21 +61,23 @@ export class OrderService {
     await this.orderRepo.remove(order);
   }
 
-  async updateStatus(id: number, status: 'Pending' | 'Paid' | 'Shipped' | 'Canceled'): Promise<Order> {
+  async updateStatus(id: number, status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded'): Promise<Order> {
     const order = await this.findOne(id);
     
-    // Validate status transitions
+    // Validate status transitions based on e-commerce flow
     const validTransitions: Record<string, string[]> = {
-      'Pending': ['Paid', 'Canceled'],
-      'Paid': ['Shipped', 'Canceled'],
-      'Shipped': ['Canceled'],
-      'Canceled': [],
+      'Pending': ['Processing', 'Canceled'],           // Admin confirms or cancels
+      'Processing': ['Shipped', 'Canceled'],           // Prepare shipment or cancel
+      'Shipped': ['Completed', 'Refunded'],            // Delivered or refund request
+      'Completed': ['Refunded'],                       // Only can refund after completion
+      'Canceled': [],                                  // Final state
+      'Refunded': [],                                  // Final state
     };
 
     const allowedStatuses = validTransitions[order.status] || [];
     if (!allowedStatuses.includes(status)) {
       throw new BadRequestException(
-        `Cannot transition from ${order.status} to ${status}`
+        `Cannot transition from ${order.status} to ${status}. Allowed: ${allowedStatuses.join(', ')}`
       );
     }
 
@@ -95,21 +91,21 @@ export class OrderService {
     if (!customer) throw new NotFoundException('Customer not found');
 
     return this.dataSource.transaction(async (manager) => {
-      // validate items and reserve stock
+      // validate items and check stock
       let subtotal = 0;
       const orderItems: OrderItem[] = [];
 
       for (const it of dto.items) {
-        const stock = await manager.getRepository(Stock).findOne({ where: { variant: { id: it.variant_id } }, relations: ['variant'] });
-        if (!stock || (stock.quantity - stock.reserved) < it.quantity) throw new BadRequestException('Insufficient stock for variant ' + it.variant_id);
+        const variant = await manager.getRepository(Variant).findOne({ where: { id: it.variant_id } });
+        if (!variant) throw new BadRequestException('Variant not found: ' + it.variant_id);
+        if (variant.stock < it.quantity) throw new BadRequestException('Insufficient stock for variant ' + it.variant_id);
 
-        // reserve
-        stock.reserved += it.quantity;
-        await manager.getRepository(Stock).save(stock);
+        // decrease stock
+        variant.stock -= it.quantity;
+        await manager.getRepository(Variant).save(variant);
 
-        // get price
-        const price = await manager.getRepository(Price).findOne({ where: { variant: { id: it.variant_id } } });
-        const unit = price?.sale_price ?? price?.base_price ?? 0;
+        // use price from variant
+        const unit = variant.price ?? 0;
         subtotal += Number(unit) * it.quantity;
 
         const orderItem = manager.getRepository(OrderItem).create({ variant_id: it.variant_id, quantity: it.quantity, price: unit });

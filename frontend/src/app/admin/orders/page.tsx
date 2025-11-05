@@ -86,10 +86,17 @@ const OrdersPage = () => {
     switch (status.toLowerCase()) {
       case "completed":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "shipped":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "processing":
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
       case "pending":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
       case "cancelled":
+      case "canceled":
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "refunded":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
@@ -194,30 +201,79 @@ const OrdersPage = () => {
                       </td>
                       <td className="px-4 py-4">
                         {isAdmin ? (
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
+                            {/* Pending → Processing or Cancel */}
                             {order.status === 'Pending' && (
+                              <>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Processing')}
+                                  className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 transition-colors"
+                                  title="Confirm and start processing"
+                                >
+                                  ✓ Confirm
+                                </button>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Canceled')}
+                                  className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+                                  title="Cancel this order"
+                                >
+                                  ✕ Cancel
+                                </button>
+                              </>
+                            )}
+                            {/* Processing → Shipped or Cancel */}
+                            {order.status === 'Processing' && (
+                              <>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Shipped')}
+                                  className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+                                  title="Ship the order"
+                                >
+                                  📦 Ship
+                                </button>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Canceled')}
+                                  className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+                                  title="Cancel this order"
+                                >
+                                  ✕ Cancel
+                                </button>
+                              </>
+                            )}
+                            {/* Shipped → Completed or Refunded */}
+                            {order.status === 'Shipped' && (
+                              <>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Completed')}
+                                  className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 transition-colors"
+                                  title="Mark as delivered"
+                                >
+                                  ✓ Delivered
+                                </button>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Refunded')}
+                                  className="rounded bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 transition-colors"
+                                  title="Process refund request"
+                                >
+                                  ↩ Refund
+                                </button>
+                              </>
+                            )}
+                            {/* Completed → Refunded */}
+                            {order.status === 'Completed' && (
                               <button
-                                onClick={() => updateOrderStatus(order.id, 'Paid')}
-                                className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+                                onClick={() => updateOrderStatus(order.id, 'Refunded')}
+                                className="rounded bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 transition-colors"
+                                title="Process refund request"
                               >
-                                Mark Paid
+                                ↩ Refund
                               </button>
                             )}
-                            {order.status === 'Paid' && (
-                              <button
-                                onClick={() => updateOrderStatus(order.id, 'Shipped')}
-                                className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
-                              >
-                                Ship
-                              </button>
-                            )}
-                            {(order.status === 'Pending' || order.status === 'Paid') && (
-                              <button
-                                onClick={() => updateOrderStatus(order.id, 'Canceled')}
-                                className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
-                              >
-                                Cancel
-                              </button>
+                            {/* Final states - no actions */}
+                            {(order.status === 'Canceled' || order.status === 'Refunded') && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                No actions
+                              </span>
                             )}
                           </div>
                         ) : (

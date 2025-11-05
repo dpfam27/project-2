@@ -28,7 +28,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
   async create(@Body() dto: CreateOrderDto): Promise<ApiResponseDto<OrderResponseDto>> {
     const order = await this.orderService.create(dto);
@@ -40,7 +40,7 @@ export class OrderController {
   }
 
   @Post('checkout')
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto })
   async checkout(@Body() dto: CheckoutDto, @Request() req: any) {
     // Get userId from JWT token
@@ -50,14 +50,14 @@ export class OrderController {
   }
 
   @Post('payment/init')
-  @Auth('user')
+  @Auth('customer')
   async initPayment(@Body() dto: PaymentInitDto) {
     // For demo we just return a mock payment url
     return { statusCode: 200, message: 'Payment initiated', data: { payment_url: 'https://mockpay.example/pay?paymentId=' + dto.order_id } };
   }
 
   @Get()
-  @Auth('user', 'admin')
+  @Auth('customer', 'admin')
   @ApiOkResponse({ type: ApiResponseDto<Order[]> })
   async findAll(): Promise<ApiResponseDto<Order[]>> {
     const orders = await this.orderService.findAll();
@@ -93,7 +93,7 @@ export class OrderController {
   }
 
   @Patch(':id')
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderDto): Promise<ApiResponseDto<OrderResponseDto>> {
     const updated = await this.orderService.update(id, dto);
@@ -109,7 +109,7 @@ export class OrderController {
   @ApiOkResponse({ type: ApiResponseDto<OrderResponseDto> })
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { status: 'Pending' | 'Paid' | 'Shipped' | 'Canceled' }
+    @Body() body: { status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded' }
   ): Promise<ApiResponseDto<OrderResponseDto>> {
     const updated = await this.orderService.updateStatus(id, body.status);
     return {

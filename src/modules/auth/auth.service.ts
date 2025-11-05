@@ -1,9 +1,10 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { Customer } from '../customers/entities/customer.entity';
 import { RegisterUserDto } from './dto/requests/register-user.dto';
 import { LoginDto } from './dto/requests/login.dto';
 
@@ -11,22 +12,55 @@ import { LoginDto } from './dto/requests/login.dto';
 export class AuthService {
   constructor(
     @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(Customer) private customersRepo: Repository<Customer>,
     private jwtService: JwtService,
+    private dataSource: DataSource,
   ) {}
 
   async register(dto: RegisterUserDto): Promise<User> {
-    const existing = await this.usersRepo.findOne({ where: { username: dto.username } });
-    if (existing) throw new ConflictException('Username already exists');
+    // Check if username exists
+    const existingUser = await this.usersRepo.findOne({ where: { username: dto.username } });
+    if (existingUser) throw new ConflictException('Username already exists');
+
+    // Check if email exists
+    const existingCustomer = await this.customersRepo.findOne({ where: { email: dto.email } });
+    if (existingCustomer) throw new ConflictException('Email already exists');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const newUser = this.usersRepo.create({
-      username: dto.username,
-      password: hashedPassword,
-      role: 'user',  // default role
-    });
+    // Use transaction to ensure both user and customer are created together
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    return this.usersRepo.save(newUser);
+    try {
+      // Create user
+      const newUser = this.usersRepo.create({
+        username: dto.username,
+        password: hashedPassword,
+        role: dto.role || 'customer',  // default role is customer
+      });
+      const savedUser = await queryRunner.manager.save(newUser);
+
+      // Only create customer record for non-admin users
+      // Admins should NOT have customer records
+      if (savedUser.role !== 'admin') {
+        const newCustomer = new Customer();
+        newCustomer.name = dto.name;
+        newCustomer.email = dto.email;
+        if (dto.phone) newCustomer.phone = dto.phone;
+        if (dto.address) newCustomer.address = dto.address;
+        await queryRunner.manager.save(newCustomer);
+      }
+
+      await queryRunner.commitTransaction();
+      return savedUser;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async validateUser(username: string, pass: string): Promise<User> {

@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Cart } from './cart.entity';
-import { Variant } from '../../catalog/entities/variant.entity';
+import { Variant } from '../../product/entities/variant.entity';
 
 @Entity('cart_items')
 export class CartItem {

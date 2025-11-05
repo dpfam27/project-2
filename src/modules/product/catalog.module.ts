@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CatalogService } from './catalog.service';
-import { CatalogController } from './catalog.controller';
+import { CatalogService } from './product.service';
+import { CatalogController } from './product.controller';
 import { Product } from './entities/product.entity';
 import { Variant } from './entities/variant.entity';
-import { Price } from './entities/price.entity';
-import { Stock } from './entities/stock.entity';
 import { Coupon } from './entities/coupon.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Variant, Price, Stock, Coupon])],
+  imports: [TypeOrmModule.forFeature([Product, Variant, Coupon])],
   providers: [CatalogService],
   controllers: [CatalogController],
   exports: [CatalogService],

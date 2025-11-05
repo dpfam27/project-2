@@ -22,7 +22,7 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get()
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<Cart> })
   async getCart(@Request() req): Promise<ApiResponseDto<Cart>> {
     const userId = req.user.userId;
@@ -35,7 +35,7 @@ export class CartController {
   }
 
   @Post('items')
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<Cart> })
   async addItem(
     @Request() req,
@@ -51,7 +51,7 @@ export class CartController {
   }
 
   @Patch('items/:id')
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<Cart> })
   async updateItem(
     @Request() req,
@@ -68,7 +68,7 @@ export class CartController {
   }
 
   @Delete('items/:id')
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<Cart> })
   async removeItem(
     @Request() req,
@@ -84,7 +84,7 @@ export class CartController {
   }
 
   @Delete()
-  @Auth('user')
+  @Auth('customer')
   @ApiOkResponse({ type: ApiResponseDto<null> })
   async clearCart(@Request() req): Promise<ApiResponseDto<null>> {
     const userId = req.user.userId;

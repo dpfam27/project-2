@@ -162,26 +162,6 @@ CREATE TABLE `payments` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `prices`
---
-
-DROP TABLE IF EXISTS `prices`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `prices` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `base_price` decimal(10,2) NOT NULL,
-  `sale_price` decimal(10,2) DEFAULT NULL,
-  `start_at` datetime DEFAULT NULL,
-  `end_at` datetime DEFAULT NULL,
-  `variantId` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FK_c145677376ffce39ca86439e01b` (`variantId`),
-  CONSTRAINT `FK_c145677376ffce39ca86439e01b` FOREIGN KEY (`variantId`) REFERENCES `variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `products`
 --
 
@@ -198,24 +178,6 @@ CREATE TABLE `products` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `stocks`
---
-
-DROP TABLE IF EXISTS `stocks`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `stocks` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `quantity` int NOT NULL DEFAULT '0',
-  `reserved` int NOT NULL DEFAULT '0',
-  `variantId` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FK_30681aaa1b938bc330dc39b5707` (`variantId`),
-  CONSTRAINT `FK_30681aaa1b938bc330dc39b5707` FOREIGN KEY (`variantId`) REFERENCES `variants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `users`
 --
 
@@ -226,7 +188,7 @@ CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `role` varchar(255) NOT NULL DEFAULT 'user',
+  `role` varchar(255) NOT NULL DEFAULT 'customer',
   `created` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`),
   UNIQUE KEY `IDX_fe0bb3f6520ee0469504521e71` (`username`)
@@ -244,6 +206,8 @@ CREATE TABLE `variants` (
   `id` int NOT NULL AUTO_INCREMENT,
   `sku` varchar(100) DEFAULT NULL,
   `attributes` json DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `stock` int NOT NULL DEFAULT '0',
   `productId` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_bdbfe33a28befefa9723c355036` (`productId`),

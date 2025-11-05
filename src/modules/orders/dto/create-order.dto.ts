@@ -8,8 +8,8 @@ export class CreateOrderDto {
   order_number: string;
 
   @IsOptional()
-  @IsEnum(['Pending', 'Paid', 'Shipped', 'Canceled'])
-  status?: 'Pending' | 'Paid' | 'Shipped' | 'Canceled';
+  @IsEnum(['Pending', 'Processing', 'Shipped', 'Completed', 'Canceled', 'Refunded'])
+  status?: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded';
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)

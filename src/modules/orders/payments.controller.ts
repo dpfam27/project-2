@@ -45,7 +45,7 @@ export class PaymentsController {
       // finalize order, decrement stock and reserved, increment coupon usage
       const order = await this.ordersRepo.findOne({ where: { id: order_id }, relations: ['items'] });
       if (order) {
-        order.status = 'Paid';
+        order.status = 'Processing';
         await this.ordersRepo.save(order);
 
         // for each item, reduce stock quantity and reserved

@@ -6,6 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import { productsAPI, Product } from '@/lib/api';
 import { formatVND } from '@/lib/currency';
 import { guestCart } from '@/lib/guestCart';
+import { LoginPromptModal } from '@/components/common/LoginPromptModal';
+import { CartToast } from '@/components/common/CartToast';
 
 export default function ProductsPage() {
   const { isAuthenticated, isAdmin, loading: authLoading } = useAuth();
@@ -14,6 +16,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // No auth redirect - allow guests to browse products
 
@@ -58,6 +63,12 @@ export default function ProductsPage() {
   };
 
   const handleQuickAddToCart = async (product: Product) => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
     if (!product.variants || product.variants.length === 0) {
       // Nếu không có variant, chuyển đến trang chi tiết
       router.push(`/products/${product.id}`);
@@ -93,10 +104,11 @@ export default function ProductsPage() {
         });
 
         if (response.ok) {
-          alert(`Added "${product.name}" to cart!`);
+          setToastMessage(`Added "${product.name}" to cart!`);
+          setShowToast(true);
           setTimeout(() => {
             router.push('/cart');
-          }, 500);
+          }, 1500);
         } else {
           const errorData = await response.json();
           alert(`Failed to add to cart: ${errorData.message || 'Unknown error'}`);
@@ -112,7 +124,8 @@ export default function ProductsPage() {
           sku: firstVariant.sku,
         });
         
-        alert(`Added "${product.name}" to cart!`);
+        setToastMessage(`Added "${product.name}" to cart!`);
+        setShowToast(true);
         setTimeout(() => {
           router.push('/cart');
         }, 500);
@@ -258,6 +271,19 @@ export default function ProductsPage() {
           )}
         </div>
       )}
+
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
+      {/* Cart Toast Notification */}
+      <CartToast
+        isVisible={showToast}
+        message={toastMessage}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

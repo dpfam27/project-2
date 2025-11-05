@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import PageBreadCrumb from "@/components/common/PageBreadCrumb";
 import { formatVND } from "@/lib/currency";
+import { LoginPromptModal } from "@/components/common/LoginPromptModal";
+import { CartToast } from "@/components/common/CartToast";
 
 interface Product {
   id: number;
@@ -36,6 +38,9 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     if (params.id) {
@@ -68,7 +73,7 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      router.push('/login');
+      setShowLoginModal(true);
       return;
     }
 
@@ -95,11 +100,13 @@ const ProductDetailPage = () => {
         body: JSON.stringify({
           variant_id: selectedVariant.id,
           quantity: quantity,
+          price: selectedVariant.price,
         }),
       });
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Added to cart successfully!' });
+        setToastMessage('Added to cart successfully!');
+        setShowToast(true);
         setQuantity(1);
         
         // Redirect to cart after 1.5 seconds
@@ -339,6 +346,19 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
+      {/* Cart Toast Notification */}
+      <CartToast
+        isVisible={showToast}
+        message={toastMessage}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 };

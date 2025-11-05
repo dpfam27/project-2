@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
-import { CatalogService } from './catalog.service';
+import { CatalogService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { Auth } from '../../common/decorators/auth.decorator';
 

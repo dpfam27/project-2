@@ -2,7 +2,7 @@
 
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
@@ -17,17 +17,26 @@ export default function AdminLayout({
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const { isAdmin, loading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Skip auth check for login page
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !isLoginPage) {
       if (!isAuthenticated) {
-        router.push('/login');
+        router.push('/admin/login');
       } else if (!isAdmin) {
         // Not admin - redirect to customer area
         router.push('/products');
       }
     }
-  }, [loading, isAuthenticated, isAdmin, router]);
+  }, [loading, isAuthenticated, isAdmin, router, isLoginPage]);
+
+  // If it's login page, just render children without auth check
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

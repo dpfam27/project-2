@@ -31,10 +31,10 @@ export class Order {
   @Column({
     name: 'status',
     type: 'simple-enum',
-    enum: ['Pending', 'Paid', 'Shipped', 'Canceled'],
+    enum: ['Pending', 'Processing', 'Shipped', 'Completed', 'Canceled', 'Refunded'],
     default: 'Pending',
   })
-  status: 'Pending' | 'Paid' | 'Shipped' | 'Canceled';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded';
 
   @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
   total_amount: number;

@@ -8,6 +8,11 @@ export interface LoginResponse {
 export interface RegisterData {
   username: string;
   password: string;
+  role?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface LoginData {
@@ -85,6 +90,56 @@ export interface AddToCartData {
 
 export interface UpdateCartItemData {
   quantity: number;
+}
+
+// Order types
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  variant_id: number;
+  variant?: {
+    id: number;
+    sku: string;
+    price: number;
+    stock: number;
+    attributes?: {
+      size?: string;
+      color?: string;
+    };
+    product?: Product;
+  };
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: number;
+  customer_id: number;
+  customer?: Customer;
+  order_number: string;
+  order_date: string;
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded';
+  total_amount: number;
+  items?: OrderItem[];
+  payment_method?: string;
+  coupon_code?: string;
+  coupon_id?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CheckoutData {
+  customer_id: number;
+  items: {
+    variant_id: number;
+    quantity: number;
+  }[];
+  shipping_fee?: number;
+  coupon_code?: string;
+}
+
+export interface UpdateOrderStatusData {
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Canceled' | 'Refunded';
 }
 
 // Helper to get token from localStorage
@@ -255,10 +310,57 @@ export const cartAPI = {
     }),
 };
 
+// Orders API
+export const ordersAPI = {
+  // Get all orders (customer or admin)
+  getAll: () =>
+    apiFetch<{ statusCode: number; message: string; data: Order[] }>('/orders'),
+
+  // Get single order by ID
+  getById: (id: number) =>
+    apiFetch<{ statusCode: number; message: string; data: Order }>(`/orders/${id}`),
+
+  // Search orders by keyword (admin only)
+  search: (keyword: string) =>
+    apiFetch<{ statusCode: number; message: string; data: Order[] }>(
+      `/orders/search?keyword=${encodeURIComponent(keyword)}`
+    ),
+
+  // Checkout (create order from cart)
+  checkout: (data: CheckoutData) =>
+    apiFetch<{ statusCode: number; message: string; data: { order: Order; paymentId: number } }>(
+      '/orders/checkout',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    ),
+
+  // Admin: Update order status (Confirm/Cancel/Refund)
+  updateStatus: (id: number, data: UpdateOrderStatusData) =>
+    apiFetch<{ statusCode: number; message: string; data: Order }>(
+      `/orders/${id}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    ),
+
+  // Admin: Delete order
+  delete: (id: number) =>
+    apiFetch<{ statusCode: number; message: string; data: null }>(
+      `/orders/${id}`,
+      {
+        method: 'DELETE',
+      }
+    ),
+};
+
 // Export default client
 export default {
   auth: authAPI,
   customers: customersAPI,
   products: productsAPI,
   cart: cartAPI,
+  orders: ordersAPI,
 };

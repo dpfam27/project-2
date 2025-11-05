@@ -4,9 +4,9 @@
 USE projectii;
 
 -- Insert test admin user (password: admin123, đã hash bcrypt)
-INSERT INTO `users` (`username`, `password`, `role`) VALUES
+INSERT INTO `users` (`username`, `password_hash`, `role`) VALUES
 ('testadmin', '$2b$10$8eQHxYQHqQ8nXQ8xJqP8.OuKqZ8nYyZ8nYyZ8nYyZ8nYyZ8nYyZ8m', 'admin'),
-('testuser', '$2b$10$8eQHxYQHqQ8nXQ8xJqP8.OuKqZ8nYyZ8nYyZ8nYyZ8nYyZ8nYyZ8m', 'user');
+('testuser', '$2b$10$8eQHxYQHqQ8nXQ8xJqP8.OuKqZ8nYyZ8nYyZ8nYyZ8nYyZ8nYyZ8m', 'customer');
 
 -- Insert sample customers
 INSERT INTO `customers` (`name`, `email`, `phone`, `address`) VALUES
@@ -22,51 +22,22 @@ INSERT INTO `products` (`name`, `description`, `published`) VALUES
 ('BCAA Energy', 'Amino acid phục hồi cơ bắp', 1),
 ('Pre-Workout', 'Năng lượng trước khi tập', 0);
 
--- Insert sample variants (size/flavor combinations)
-INSERT INTO `variants` (`product_id`, `name`, `sku`) VALUES
+-- Insert sample variants with price and stock
+INSERT INTO `variants` (`productId`, `sku`, `attributes`, `price`, `stock`) VALUES
 -- Whey Protein (ID 1)
-(1, 'Whey Protein - Chocolate 1kg', 'WP-CHOCO-1KG'),
-(1, 'Whey Protein - Vanilla 1kg', 'WP-VANILLA-1KG'),
-(1, 'Whey Protein - Chocolate 2kg', 'WP-CHOCO-2KG'),
+(1, 'WP-CHOCO-1KG', JSON_OBJECT('size', '1kg', 'flavor', 'Chocolate'), 499000, 100),
+(1, 'WP-VANILLA-1KG', JSON_OBJECT('size', '1kg', 'flavor', 'Vanilla'), 499000, 80),
+(1, 'WP-CHOCO-2KG', JSON_OBJECT('size', '2kg', 'flavor', 'Chocolate'), 999000, 50),
 -- Whey Gold Standard (ID 2)
-(2, 'Gold Standard - Double Chocolate 2.27kg', 'WP-GOLD-DCHOCO-2.27'),
-(2, 'Gold Standard - Vanilla Ice Cream 2.27kg', 'WP-GOLD-VANILLA-2.27'),
+(2, 'WP-GOLD-DCHOCO-2.27', JSON_OBJECT('size', '2.27kg', 'flavor', 'Double Chocolate'), 1699000, 30),
+(2, 'WP-GOLD-VANILLA-2.27', JSON_OBJECT('size', '2.27kg', 'flavor', 'Vanilla Ice Cream'), 1699000, 25),
 -- Mass Gainer (ID 3)
-(3, 'Mass Gainer - Chocolate 3kg', 'MASS-CHOCO-3KG'),
-(3, 'Mass Gainer - Strawberry 3kg', 'MASS-STRAW-3KG'),
+(3, 'MASS-CHOCO-3KG', JSON_OBJECT('size', '3kg', 'flavor', 'Chocolate'), 799000, 60),
+(3, 'MASS-STRAW-3KG', JSON_OBJECT('size', '3kg', 'flavor', 'Strawberry'), 799000, 45),
 -- BCAA (ID 4)
-(4, 'BCAA Energy - Fruit Punch 300g', 'BCAA-FRUIT-300G'),
+(4, 'BCAA-FRUIT-300G', JSON_OBJECT('size', '300g', 'flavor', 'Fruit Punch'), 449000, 120),
 -- Pre-Workout (ID 5)
-(5, 'Pre-Workout - Blue Raspberry 250g', 'PRE-BLUE-250G');
-
--- Insert prices for variants
-INSERT INTO `prices` (`variant_id`, `base_price`, `sale_price`, `currency`) VALUES
--- Whey Protein
-(1, 599000, 499000, 'VND'),
-(2, 599000, 499000, 'VND'),
-(3, 1099000, 999000, 'VND'),
--- Whey Gold Standard
-(4, 1899000, 1699000, 'VND'),
-(5, 1899000, 1699000, 'VND'),
--- Mass Gainer
-(6, 899000, 799000, 'VND'),
-(7, 899000, 799000, 'VND'),
--- BCAA
-(8, 499000, 449000, 'VND'),
--- Pre-Workout
-(9, 699000, 599000, 'VND');
-
--- Insert stock quantities
-INSERT INTO `stocks` (`variant_id`, `quantity`, `reserved`) VALUES
-(1, 100, 0),
-(2, 80, 0),
-(3, 50, 0),
-(4, 30, 0),
-(5, 25, 0),
-(6, 60, 0),
-(7, 45, 0),
-(8, 120, 0),
-(9, 40, 0);
+(5, 'PRE-BLUE-250G', JSON_OBJECT('size', '250g', 'flavor', 'Blue Raspberry'), 599000, 40);
 
 -- Insert sample coupons
 INSERT INTO `coupons` (`code`, `type`, `value`, `starts_at`, `ends_at`, `usage_limit`, `used_count`, `active`) VALUES
@@ -113,13 +84,11 @@ SELECT 'Coupons Count:' as Info, COUNT(*) as Total FROM coupons;
 -- Show sample product with variants
 SELECT 
     p.name as product_name,
-    v.name as variant_name,
-    pr.base_price,
-    pr.sale_price,
-    s.quantity as stock
+    v.sku as variant_sku,
+    v.attributes,
+    v.price,
+    v.stock
 FROM products p
-LEFT JOIN variants v ON p.id = v.product_id
-LEFT JOIN prices pr ON v.id = pr.variant_id
-LEFT JOIN stocks s ON v.id = s.variant_id
+LEFT JOIN variants v ON p.id = v.productId
 WHERE p.published = 1
 LIMIT 10;
